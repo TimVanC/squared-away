@@ -8,6 +8,7 @@ import { todayIn } from "@/lib/dates";
 import { sortDayTasks } from "@/lib/sort";
 import Header, { DAY_TYPE_LABEL } from "./Header";
 import TaskGrid from "./TaskGrid";
+import WaterMeter from "./WaterMeter";
 import ThemeVars from "./ThemeVars";
 
 type Props = { initialDate: string; timezone: string };
@@ -113,6 +114,21 @@ export default function DayScreen({ initialDate, timezone }: Props) {
     }
   }
 
+  async function addWater(oz: number) {
+    setView((v) => (v ? { ...v, water: { ...v.water, fromEntries: v.water.fromEntries + oz } } : v));
+    try {
+      const res = await fetch("/api/water", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date, oz }),
+      });
+      if (!res.ok) throw new Error("Could not save");
+    } catch {
+      setError("Could not save that. Check your connection.");
+    }
+    load(date, { silent: true });
+  }
+
   function onSingleTap(task: DayTask) {
     // Step 5/6 wire the edit sheet (open tiles) and the log sheet (done tiles).
     void task;
@@ -145,9 +161,7 @@ export default function DayScreen({ initialDate, timezone }: Props) {
             onTapDayType={() => setDayTypePicker(true)}
           />
 
-          <div className="px-4 py-2 text-sm opacity-80" style={{ color: "var(--header-text)" }}>
-            Water {waterTotal} / {view?.water.goal ?? 100} oz
-          </div>
+          <WaterMeter total={waterTotal} goal={view?.water.goal ?? 100} onAdd={addWater} />
 
           {view && view.lists.length > 1 && (
             <div className="flex gap-2 px-4 py-2 overflow-x-auto">
