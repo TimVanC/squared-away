@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { DayTask, DayView } from "@/lib/services/day";
 import type { DayType } from "@/db/schema";
 import { todayIn } from "@/lib/dates";
@@ -276,6 +277,12 @@ export default function DayScreen({ initialDate, timezone }: Props) {
             !error && <p className="px-4 py-10 text-center text-sm opacity-60">Loading...</p>
           )}
         </div>
+
+        <Link href="/chat" className="chat-fab" aria-label="Open chat">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 12a8 8 0 0 1-8 8H8l-5 3 1.5-4.5A8 8 0 1 1 21 12z" />
+          </svg>
+        </Link>
 
         {editor && view && (
           <TaskSheet
