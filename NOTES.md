@@ -40,3 +40,9 @@ Decisions and assumptions made while building from the PRD. Anything here is a c
 ## Test data
 
 - Two test accounts (`tester@example.com`, plus the AI test messages) were created in the Neon DB during development and are deleted at the end of the build.
+
+## PRD gaps found while testing
+
+- **Water checkpoint amounts per day type (PRD 4.4):** the data model only has `time_overrides` per date, so the AI can retime checkpoints per day but cannot change their ounce amounts on one date. In the planning test it worked around this by adding a "Shift day water boost" 20 oz checkpoint on shift days, which reaches the 120 oz goal. A per-date `water_oz` override would be the clean fix later.
+- **Em dashes (PRD 4.10):** the model occasionally emits one despite the rule, so the chat route replaces em and en dashes with commas in streamed and stored text.
+- **Chat history and files:** file bytes are not persisted, so a later turn cannot re-read an old screenshot; the model is told to ask for a re-attach.

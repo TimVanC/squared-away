@@ -89,7 +89,7 @@ export async function POST(req: Request) {
             messages,
             thinking: { type: "adaptive" },
           });
-          s.on("text", (delta) => send({ type: "text", delta }));
+          s.on("text", (delta) => send({ type: "text", delta: noDashes(delta) }));
           s.on("contentBlock", (block) => {
             if (block.type === "tool_use") send({ type: "action_start", action: { id: block.id, name: block.name } });
           });
@@ -104,7 +104,7 @@ export async function POST(req: Request) {
             throw err;
           }
 
-          const textOut = message.content.filter((b): b is Anthropic.TextBlock => b.type === "text").map((b) => b.text).join("");
+          const textOut = noDashes(message.content.filter((b): b is Anthropic.TextBlock => b.type === "text").map((b) => b.text).join(""));
           const toolUses = message.content.filter((b): b is Anthropic.ToolUseBlock => b.type === "tool_use");
 
           if (message.stop_reason === "refusal") {
@@ -158,7 +158,11 @@ export async function POST(req: Request) {
         console.error("chat error", err);
         send({ type: "error", message });
       } finally {
-        controller.close();
+        try {
+          controller.close();
+        } catch {
+          // already closed
+        }
       }
     },
   });
@@ -166,6 +170,11 @@ export async function POST(req: Request) {
   return new Response(stream, {
     headers: { "Content-Type": "application/x-ndjson; charset=utf-8", "Cache-Control": "no-store", "X-Accel-Buffering": "no" },
   });
+}
+
+/** PRD rule: no em dashes. Models slip, so enforce it on the way out. */
+function noDashes(text: string): string {
+  return text.replace(/\s*[—–]\s*/g, ", ").replace(/,\s*,/g, ",");
 }
 
 async function updateAssistant(id: number, content: StoredAssistant) {
