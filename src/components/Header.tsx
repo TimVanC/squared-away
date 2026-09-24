@@ -63,11 +63,11 @@ export default function Header({
       </div>
 
       <div className="mt-4 flex items-center justify-between text-sm">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold">
+        <div className="flex flex-col leading-tight">
+          <span className="font-semibold whitespace-nowrap">
             {doneCount} of {totalCount} done
           </span>
-          {showTargets && <span className="opacity-70">· {targetLine}</span>}
+          {showTargets && <span className="text-xs opacity-70 whitespace-nowrap">{targetLine}</span>}
         </div>
         <div className="flex items-center gap-2">
           {!isToday && (
