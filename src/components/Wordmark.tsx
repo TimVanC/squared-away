@@ -13,7 +13,7 @@ export default function Wordmark({ variant = "navy", size = "sm", className = ""
   const fontSize = size === "lg" ? 44 : 26;
   const tileFont = size === "lg" ? 15 : 10;
   const pad = size === "lg" ? "3px 8px" : "2px 5px";
-  const raise = size === "lg" ? 22 : 13;
+  const raise = size === "lg" ? 12 : 7;
   const offset = size === "lg" ? 3 : 2;
 
   return (
