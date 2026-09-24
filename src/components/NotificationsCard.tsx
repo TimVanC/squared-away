@@ -13,6 +13,24 @@ function urlBase64ToUint8Array(base64: string) {
   return out;
 }
 
+/** Work out what the browser can do. Runs once on mount. */
+async function detectState(): Promise<State> {
+  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as unknown as { standalone?: boolean }).standalone === true;
+  if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+    return isIOS && !standalone ? "needs-homescreen" : "unsupported";
+  }
+  if (Notification.permission === "denied") return "denied";
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    const sub = reg ? await reg.pushManager.getSubscription() : null;
+    if (sub) return "subscribed";
+  } catch {
+    // fall through
+  }
+  return Notification.permission === "granted" ? "granted" : "default";
+}
+
 /**
  * "Enable notifications" card for settings. Permission is requested from a tap, never on load.
  * On iOS this only works once the app is added to the home screen (iOS 16.4+).
@@ -23,26 +41,8 @@ export default function NotificationsCard({ vapidPublicKey }: { vapidPublicKey: 
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    // Capability detection runs once on mount; the state it sets comes from browser APIs.
-    detect();
+    detectState().then(setState);
   }, []);
-
-  function detect() {
-    const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
-    const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as unknown as { standalone?: boolean }).standalone === true;
-    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
-      setState(isIOS && !standalone ? "needs-homescreen" : "unsupported");
-      return;
-    }
-    if (Notification.permission === "denied") {
-      setState("denied");
-      return;
-    }
-    navigator.serviceWorker.ready
-      .then((reg) => reg.pushManager.getSubscription())
-      .then((sub) => setState(sub ? "subscribed" : Notification.permission === "granted" ? "granted" : "default"))
-      .catch(() => setState("default"));
-  }
 
   async function enable() {
     setBusy(true);
