@@ -11,6 +11,7 @@ import TaskGrid from "./TaskGrid";
 import WaterMeter from "./WaterMeter";
 import QuickLogSheet from "./QuickLogSheet";
 import LogSheet from "./LogSheet";
+import TaskSheet, { type TaskFormValues } from "./TaskSheet";
 import ThemeVars from "./ThemeVars";
 
 type Props = { initialDate: string; timezone: string };
@@ -28,6 +29,7 @@ export default function DayScreen({ initialDate, timezone }: Props) {
   const [dayTypePicker, setDayTypePicker] = useState(false);
   const [quickLog, setQuickLog] = useState<DayTask | null>(null);
   const [logTask, setLogTask] = useState<DayTask | null>(null);
+  const [editor, setEditor] = useState<{ task: DayTask | null } | null>(null);
   const reqSeq = useRef(0);
   const router = useRouter();
   const tz = view?.timezone ?? timezone;
@@ -168,7 +170,50 @@ export default function DayScreen({ initialDate, timezone }: Props) {
       setLogTask(task);
       return;
     }
-    // Step 6 wires the edit sheet for open tiles.
+    setEditor({ task });
+  }
+
+  async function apiJson(url: string, method: string, body?: unknown) {
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error ?? "Something went wrong");
+    return data;
+  }
+
+  async function saveTask(values: TaskFormValues, opts: { overrideOnly: boolean }) {
+    const existing = editor?.task ?? null;
+    if (existing && opts.overrideOnly) {
+      await apiJson(`/api/tasks/${existing.id}`, "PATCH", { date, overrideTime: values.time });
+      const { time: _time, ...rest } = values;
+      void _time;
+      await apiJson(`/api/tasks/${existing.id}`, "PATCH", rest);
+    } else if (existing) {
+      await apiJson(`/api/tasks/${existing.id}`, "PATCH", values);
+    } else {
+      await apiJson("/api/tasks", "POST", values);
+    }
+    setEditor(null);
+    await load(date, { silent: true });
+  }
+
+  async function pushTask() {
+    const existing = editor?.task;
+    if (!existing) return;
+    await apiJson(`/api/tasks/${existing.id}`, "PATCH", { action: "push", date });
+    setEditor(null);
+    await load(date, { silent: true });
+  }
+
+  async function deleteTask() {
+    const existing = editor?.task;
+    if (!existing) return;
+    await apiJson(`/api/tasks/${existing.id}`, "DELETE");
+    setEditor(null);
+    await load(date, { silent: true });
   }
 
   async function chooseDayType(type: DayType | null) {
@@ -214,7 +259,7 @@ export default function DayScreen({ initialDate, timezone }: Props) {
           )}
 
           <div className="px-4 pt-2">
-            <button type="button" className="add-btn">
+            <button type="button" className="add-btn" onClick={() => setEditor({ task: null })}>
               + Add a todo
             </button>
           </div>
@@ -231,6 +276,19 @@ export default function DayScreen({ initialDate, timezone }: Props) {
             !error && <p className="px-4 py-10 text-center text-sm opacity-60">Loading...</p>
           )}
         </div>
+
+        {editor && view && (
+          <TaskSheet
+            task={editor.task}
+            date={date}
+            lists={view.lists}
+            defaultListId={listId === "all" ? (view.lists[0]?.id ?? 0) : listId}
+            onSave={saveTask}
+            onPush={editor.task ? pushTask : undefined}
+            onDelete={editor.task ? deleteTask : undefined}
+            onClose={() => setEditor(null)}
+          />
+        )}
 
         {quickLog && (
           <QuickLogSheet

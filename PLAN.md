@@ -7,7 +7,7 @@ Based on PRD section 9. Checked off as each step is built, typechecked, linted, 
 - [x] 3. Grid with date nav, double tap complete, midnight reset (PRD 4.2, 4.3)
 - [x] 4. Water meter and checkpoint tiles (PRD 4.4)
 - [x] 5. Completion logs, quick-log sheet, CSV export (PRD 4.5)
-- [ ] 6. Task sheet with repeat rules, push to tomorrow, lists (PRD 4.6, 4.7)
+- [x] 6. Task sheet with repeat rules, push to tomorrow, lists (PRD 4.6, 4.7)
 - [ ] 7. Header targets and settings: theme, targets, My Plan (PRD 4.2, 4.8, 4.9)
 - [ ] 8. Chat UI with attachments and dictation (PRD 4.10)
 - [ ] 9. AI tools, streaming, action cards with undo (PRD 4.10)

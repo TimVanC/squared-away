@@ -389,3 +389,38 @@ body {
   font-weight: 600;
   opacity: 0.75;
 }
+
+/* ---------- Sheet controls ---------- */
+.seg {
+  border-radius: 12px;
+  padding: 9px 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  background: #eef0f6;
+  color: #1f2b4d;
+  line-height: 1.1;
+}
+.seg-active {
+  background: #1f2b4d;
+  color: #ffd84d;
+}
+.chip-light {
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #eef0f6;
+  color: #1f2b4d;
+  white-space: nowrap;
+}
+.chip-light:active {
+  background: #ffd84d;
+}
+select.field {
+  appearance: none;
+  -webkit-appearance: none;
+}
+input[type="time"].field,
+input[type="date"].field {
+  min-height: 48px;
+}
