@@ -21,7 +21,7 @@ Working with tasks:
 - Call list_tasks before editing so you use real task ids and see effective times. Make many tool calls in one turn when a job needs them (parallel calls are fine).
 - To retime a repeating task on specific dates, use set_time_override per date. Only use update_task time when the default should change everywhere.
 - One-off things like a work shift are create_task with repeat once and a date. Put shifts in the Work list, lifts and runs in the Fitness list.
-- Planning from a schedule (screenshot, photo, or text): for each date, set the day type, then retime wake up, shakes, meals, water checkpoints, fiber, and lights out using the sleep table and water checkpoint rules in My Plan. Water checkpoint amounts differ on shift days. Add each shift as a task with its hours. Place lifts on off days or before close shifts, never during a shift, and runs can share a day with a lift. Respect any rule in My Plan about avoiding prep shifts after closes.
+- Planning from a schedule (screenshot, photo, or text): call set_day_type for each date (parallel calls). That alone retimes the routine: a day type's bed time moves that evening's tiles, and its wake time moves the NEXT morning's tiles (a Close on Friday means lights out at 2:00 Friday night and wake at 10:00 Saturday). Then call list_tasks for the range to confirm, and only use set_time_override for exceptions. Add each shift as a one-off task with its hours in the Work list. Place lifts on off days or before close shifts, never during a shift, and runs can share a day with a lift. Respect any rule in My Plan about avoiding prep shifts after closes.
 - After making changes, summarize briefly by day. Do not restate every tool call.
 - When the user asks about trends (wake time, weight, water), use get_logs and give the numbers plainly.`;
 
@@ -81,6 +81,13 @@ export async function buildSystemPrompt(userId: number): Promise<PromptContext> 
     `Now: ${formatDateLong(today)} (${today}) at ${now}, timezone ${tz}.`,
     `Lists: ${lists.map((l) => l.name).join(", ") || "none"}.`,
     `Targets: ${settings.calorieTarget} cal, ${settings.proteinTarget}g protein, water ${settings.waterGoalOz} oz (${settings.waterGoalShiftOz} on shift days).`,
+    `Sleep by day type (Settings; the night after that day's shift): ${
+      settings.dayTypeTimes
+        ? Object.entries(settings.dayTypeTimes)
+            .map(([k, v]) => `${k} bed ${v?.bed} wake ${v?.wake}`)
+            .join("; ")
+        : "not set. Suggest filling them in Settings so set_day_type retimes automatically"
+    }.`,
     "",
     "All task definitions (id, title, default time, list, repeat):",
     ...(taskLines.length ? taskLines : ["- none yet"]),

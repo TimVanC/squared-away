@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { settings, type Theme } from "@/db/schema";
+import { settings, type DayTypeTimes, type Theme } from "@/db/schema";
 import { HttpError } from "@/lib/api";
 import { DEFAULT_THEME, getSettings } from "./day";
 
@@ -12,9 +12,11 @@ export type SettingsInput = {
   waterGoalShiftOz?: number;
   myPlan?: string;
   timezone?: string;
+  dayTypeTimes?: DayTypeTimes | null;
 };
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
+const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export async function updateSettings(userId: number, input: SettingsInput) {
   await getSettings(userId);
@@ -40,6 +42,19 @@ export async function updateSettings(userId: number, input: SettingsInput) {
     set[key] = n;
   }
   if (input.myPlan !== undefined) set.myPlan = String(input.myPlan).slice(0, 50000);
+  if (input.dayTypeTimes !== undefined) {
+    if (input.dayTypeTimes === null) set.dayTypeTimes = null;
+    else {
+      const clean: DayTypeTimes = {};
+      for (const key of ["close", "open", "prep", "off"] as const) {
+        const v = input.dayTypeTimes[key];
+        if (!v) continue;
+        if (!TIME.test(v.wake) || !TIME.test(v.bed)) throw new HttpError(400, `Bad time for ${key}`);
+        clean[key] = { wake: v.wake, bed: v.bed };
+      }
+      set.dayTypeTimes = clean;
+    }
+  }
   if (input.timezone !== undefined) {
     try {
       new Intl.DateTimeFormat("en-US", { timeZone: input.timezone });

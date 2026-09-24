@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import Link from "next/link";
-import type { List, Theme } from "@/db/schema";
+import type { DayTypeTimes, List, Theme } from "@/db/schema";
 import Wordmark from "./Wordmark";
 import ThemeVars from "./ThemeVars";
 import LogoutButton from "./LogoutButton";
@@ -16,7 +16,15 @@ type Values = {
   waterGoalShiftOz: number;
   myPlan: string;
   timezone: string;
+  dayTypeTimes: DayTypeTimes;
 };
+
+const DAY_TYPES: [keyof DayTypeTimes, string][] = [
+  ["close", "Close"],
+  ["open", "Open"],
+  ["prep", "Prep"],
+  ["off", "Off"],
+];
 
 type Props = {
   email: string;
@@ -63,10 +71,15 @@ export default function SettingsScreen({ email, initial, defaultTheme, initialLi
     setBusy(true);
     setStatus(null);
     try {
+      const dayTypeTimes: DayTypeTimes = {};
+      for (const [key] of DAY_TYPES) {
+        const v = values.dayTypeTimes[key];
+        if (v?.wake && v?.bed) dayTypeTimes[key] = v;
+      }
       const res = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({ ...values, dayTypeTimes }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Could not save");
@@ -158,6 +171,37 @@ export default function SettingsScreen({ email, initial, defaultTheme, initialLi
               <button type="button" className="chip ml-auto" onClick={() => set("theme", defaultTheme)}>
                 Reset to default
               </button>
+            </div>
+          </section>
+
+          <section className="card">
+            <h2 className="card-title">Sleep by day type</h2>
+            <p className="text-xs opacity-60 mb-3">
+              Each row is the night after that shift. A Close means lights out at its bed time that night and waking at its wake time the next morning. Tile times are off-day times; setting a day type shifts that evening and the next morning by the difference from Off. Shifts and one-off tasks stay put.
+            </p>
+            <div className="grid grid-cols-[auto_1fr_1fr] gap-x-3 gap-y-2 items-center">
+              <span />
+              <span className="text-xs font-bold opacity-70">Bed</span>
+              <span className="text-xs font-bold opacity-70">Wake</span>
+              {DAY_TYPES.map(([key, label]) => (
+                <Fragment key={key}>
+                  <span className="text-sm font-semibold">{label}</span>
+                  <input
+                    type="time"
+                    className="field"
+                    style={{ background: "rgba(255,255,255,.08)", color: "var(--header-text)", padding: "8px 10px" }}
+                    value={values.dayTypeTimes[key]?.bed ?? ""}
+                    onChange={(e) => set("dayTypeTimes", { ...values.dayTypeTimes, [key]: { wake: values.dayTypeTimes[key]?.wake ?? "", bed: e.target.value } })}
+                  />
+                  <input
+                    type="time"
+                    className="field"
+                    style={{ background: "rgba(255,255,255,.08)", color: "var(--header-text)", padding: "8px 10px" }}
+                    value={values.dayTypeTimes[key]?.wake ?? ""}
+                    onChange={(e) => set("dayTypeTimes", { ...values.dayTypeTimes, [key]: { wake: e.target.value, bed: values.dayTypeTimes[key]?.bed ?? "" } })}
+                  />
+                </Fragment>
+              ))}
             </div>
           </section>
 

@@ -45,16 +45,16 @@ body {
 /* ---------- Tiles ---------- */
 .tile-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 13px;
-  padding: 8px 16px 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  padding: 12px 20px 24px;
 }
 
 .tile {
   position: relative;
-  aspect-ratio: 1 / 1;
-  border-radius: 18px;
-  padding: 10px 10px 9px;
+  aspect-ratio: 1.15 / 1;
+  border-radius: 20px;
+  padding: 14px 14px 12px;
   text-align: left;
   display: flex;
   flex-direction: column;
@@ -137,7 +137,7 @@ body {
 }
 
 .tile-time {
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 700;
   letter-spacing: 0.02em;
   opacity: 0.85;
@@ -146,12 +146,12 @@ body {
   line-height: 1.2;
 }
 .tile-actual {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   opacity: 0.85;
 }
 .tile-title {
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 800;
   line-height: 1.15;
   margin-top: auto;
@@ -161,7 +161,7 @@ body {
   overflow: hidden;
 }
 .tile-note {
-  font-size: 10.5px;
+  font-size: 12px;
   line-height: 1.2;
   opacity: 0.8;
   margin-top: 3px;
@@ -172,9 +172,9 @@ body {
 }
 .tile-badge {
   position: absolute;
-  top: 7px;
-  right: 8px;
-  font-size: 12px;
+  top: 10px;
+  right: 12px;
+  font-size: 14px;
   opacity: 0.8;
 }
 

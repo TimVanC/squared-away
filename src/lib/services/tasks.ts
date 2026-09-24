@@ -69,6 +69,7 @@ export type TaskInput = {
   logType?: Task["logType"];
   logUnit?: string | null;
   notify?: boolean;
+  followsWake?: boolean;
 };
 
 function cleanTaskInput(input: TaskInput, existing?: Task) {
@@ -112,6 +113,7 @@ function cleanTaskInput(input: TaskInput, existing?: Task) {
   }
   if (input.logUnit !== undefined) out.logUnit = input.logUnit ? input.logUnit.trim().slice(0, 20) : null;
   if (input.notify !== undefined) out.notify = !!input.notify;
+  if (input.followsWake !== undefined) out.followsWake = !!input.followsWake;
 
   // Consistency rules
   const repeatType = out.repeatType ?? existing?.repeatType ?? "daily";
@@ -145,6 +147,7 @@ export async function createTask(userId: number, input: TaskInput): Promise<Task
       logType: clean.logType ?? "none",
       logUnit: clean.logUnit ?? null,
       notify: clean.notify ?? false,
+      followsWake: clean.followsWake ?? true,
     })
     .returning();
   return task;

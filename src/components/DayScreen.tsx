@@ -220,11 +220,15 @@ export default function DayScreen({ initialDate, timezone }: Props) {
   async function chooseDayType(type: DayType | null) {
     setDayTypePicker(false);
     setView((v) => (v ? { ...v, dayType: type } : v));
-    await fetch("/api/day-types", {
+    const res = await fetch("/api/day-types", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ date, type }),
     });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && type && data.configured === false) {
+      setError("Set wake and bed times per day type in Settings so tiles retime automatically.");
+    }
     load(date, { silent: true });
   }
 
@@ -247,7 +251,7 @@ export default function DayScreen({ initialDate, timezone }: Props) {
           <WaterMeter total={waterTotal} goal={view?.water.goal ?? 100} onAdd={addWater} />
 
           {view && view.lists.length > 1 && (
-            <div className="flex gap-2 px-4 py-2 overflow-x-auto">
+            <div className="flex gap-2 px-5 py-3 overflow-x-auto">
               <button type="button" className={`chip ${listId === "all" ? "chip-active" : ""}`} onClick={() => setListId("all")}>
                 All
               </button>
@@ -259,7 +263,7 @@ export default function DayScreen({ initialDate, timezone }: Props) {
             </div>
           )}
 
-          <div className="px-4 pt-2">
+          <div className="px-5 pt-3">
             <button type="button" className="add-btn" onClick={() => setEditor({ task: null })}>
               + Add a todo
             </button>

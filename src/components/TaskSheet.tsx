@@ -21,6 +21,7 @@ export type TaskFormValues = {
   logType: "none" | "actual_time" | "number";
   logUnit: string | null;
   notify: boolean;
+  followsWake: boolean;
 };
 
 type Props = {
@@ -50,6 +51,7 @@ export default function TaskSheet({ task, date, lists, defaultListId, onSave, on
   const [logType, setLogType] = useState<TaskFormValues["logType"]>(task?.logType ?? "none");
   const [logUnit, setLogUnit] = useState(task?.logUnit ?? "");
   const [notify, setNotify] = useState(task?.notify ?? false);
+  const [followsWake, setFollowsWake] = useState(task?.followsWake ?? true);
   const [overrideOnly, setOverrideOnly] = useState(false);
   const [more, setMore] = useState(!!task && (task.kind === "water" || task.logType !== "none" || task.notify));
   const [recent, setRecent] = useState<string[]>([]);
@@ -107,6 +109,7 @@ export default function TaskSheet({ task, date, lists, defaultListId, onSave, on
           logType,
           logUnit: logType === "number" ? logUnit.trim() || null : null,
           notify,
+          followsWake,
         },
         { overrideOnly },
       ),
@@ -260,6 +263,13 @@ export default function TaskSheet({ task, date, lists, defaultListId, onSave, on
           <label className="flex items-center justify-between mt-4 text-sm font-bold">
             Notify me at the task time
             <input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} className="w-5 h-5" />
+          </label>
+          <label className="flex items-center justify-between mt-3 text-sm font-bold">
+            <span>
+              Moves with day type
+              <span className="block text-xs font-normal opacity-60">Shifts earlier or later with the sleep table</span>
+            </span>
+            <input type="checkbox" checked={followsWake} onChange={(e) => setFollowsWake(e.target.checked)} className="w-5 h-5" />
           </label>
         </div>
       )}

@@ -59,6 +59,7 @@ export async function applySeed(db: Db, userId: number): Promise<string> {
       logType: t.logType ?? "none",
       logUnit: t.logUnit ?? null,
       notify: t.notify ?? false,
+      followsWake: t.followsWake ?? true,
     })),
   );
 

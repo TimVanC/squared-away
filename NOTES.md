@@ -46,3 +46,12 @@ Decisions and assumptions made while building from the PRD. Anything here is a c
 - **Water checkpoint amounts per day type (PRD 4.4):** the data model only has `time_overrides` per date, so the AI can retime checkpoints per day but cannot change their ounce amounts on one date. In the planning test it worked around this by adding a "Shift day water boost" 20 oz checkpoint on shift days, which reaches the 120 oz goal. A per-date `water_oz` override would be the clean fix later.
 - **Em dashes (PRD 4.10):** the model occasionally emits one despite the rule, so the chat route replaces em and en dashes with commas in streamed and stored text.
 - **Chat history and files:** file bytes are not persisted, so a later turn cannot re-read an old screenshot; the model is told to ask for a re-attach.
+
+## Day types retime the routine (added after launch)
+
+- Settings has a "Sleep by day type" table (bed and wake per Close, Open, Prep, Off), seeded from the PRD sleep table. Each row describes the night AFTER that day's shift.
+- Setting a day type on date D moves that evening's tiles (default time 21:00 or later, plus after-midnight ones) by bed(D) minus bed(Off), and the NEXT morning's tiles (before 21:00) by wake(D) minus wake(Off). So a Close on 9/24 gives lights out at 2:00 that night and wake at 10:00 on 9/25. Clearing or choosing Off removes the overrides.
+- Task default times are off-day times. Each task has a "Moves with day type" toggle (`follows_wake`, default on). Weigh-in and untimed tasks are seeded with it off; one-off tasks (shifts, single lifts) never move.
+- The AI's set_day_type tool does the same retiming, so planning a week is mostly set_day_type calls plus shift tasks; overrides are only for exceptions.
+- `npx tsx scripts/retime.ts <userId> <date...>` re-applies the retiming for existing day types (used once to backfill Tim's account).
+- Grid changed from 3 to 2 columns with wider gaps and bigger type at Tim's request.

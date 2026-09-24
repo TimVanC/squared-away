@@ -13,7 +13,8 @@ import {
   updateTask,
   type TaskInput,
 } from "@/lib/services/tasks";
-import { completeTask, getDayTypesInRange, getLists, getLogs, setDayType, uncompleteTask } from "@/lib/services/day";
+import { completeTask, getDayTypesInRange, getLists, getLogs, uncompleteTask } from "@/lib/services/day";
+import { setDayTypeAndRetime } from "@/lib/services/daytype";
 import { createList, findListByName } from "@/lib/services/lists";
 import { db } from "@/db";
 import { completions, type Task } from "@/db/schema";
@@ -50,6 +51,7 @@ export const toolSchemas = {
     log_type: z.enum(["none", "actual_time", "number"]).optional(),
     log_unit: z.string().max(20).optional().describe("Unit for number logs, e.g. lbs, miles"),
     notify: z.boolean().optional().describe("Send a push notification at the task time"),
+    follows_wake: z.boolean().optional().describe("Default true: the task moves with the day type schedule (morning tasks follow the previous night, evening tasks follow that night). Set false for fixed-time things like a weekly weigh-in."),
   }),
   update_task: z.object({
     id: z.number().int(),
@@ -63,6 +65,7 @@ export const toolSchemas = {
     log_type: z.enum(["none", "actual_time", "number"]).optional(),
     log_unit: z.string().max(20).nullable().optional(),
     notify: z.boolean().optional(),
+    follows_wake: z.boolean().optional(),
   }),
   delete_task: z.object({ id: z.number().int() }),
   set_time_override: z.object({
@@ -98,7 +101,8 @@ const descriptions: Record<ToolName, string> = {
   update_task: "Change a task's fields for every day it repeats. To retime a single date use set_time_override instead.",
   delete_task: "Delete a task and all of its history. Prefer update_task or set_time_override when possible.",
   set_time_override: "Retime a repeating task on one date only, e.g. Wake up at 10:00 on a close-shift day. Pass null to remove the override.",
-  set_day_type: "Set the day type (close, open, prep, off) for a date. Shift days raise the water goal.",
+  set_day_type:
+    "Set the day type (close, open, prep, off) for a date. The app then retimes routine tasks automatically: that evening (fiber, lights out, evening water) from the day type's bed time, and the NEXT morning (wake, shakes, meals, daytime water) from its wake time. Shifts and one-off tasks do not move. Shift days raise the water goal. Only use set_time_override afterwards for exceptions.",
   complete_task: "Mark a task done on a date, optionally with a logged actual time, a number value, or a note. done=false undoes.",
   get_logs: "Read completion logs (completed_at, actual time, value, note) for a date range, optionally one task. Use for questions about trends like wake time or weight.",
 };
@@ -173,6 +177,7 @@ function taskToInput(t: Task): TaskInput & { listId: number } {
     logType: t.logType,
     logUnit: t.logUnit,
     notify: t.notify,
+    followsWake: t.followsWake,
   };
 }
 
@@ -263,6 +268,7 @@ async function execute(userId: number, name: ToolName, input: unknown): Promise<
         logType: i.log_type ?? "none",
         logUnit: i.log_unit ?? null,
         notify: i.notify ?? false,
+        followsWake: i.follows_wake ?? true,
       });
       return {
         ok: true,
@@ -288,6 +294,7 @@ async function execute(userId: number, name: ToolName, input: unknown): Promise<
         ...(i.log_type !== undefined ? { logType: i.log_type } : {}),
         ...(i.log_unit !== undefined ? { logUnit: i.log_unit } : {}),
         ...(i.notify !== undefined ? { notify: i.notify } : {}),
+        ...(i.follows_wake !== undefined ? { followsWake: i.follows_wake } : {}),
       } as TaskInput;
       const after = await updateTask(userId, i.id, fields);
       const changed = Object.keys(fields).filter((k) => JSON.stringify((before as Record<string, unknown>)[k]) !== JSON.stringify((after as Record<string, unknown>)[k]));
@@ -327,13 +334,14 @@ async function execute(userId: number, name: ToolName, input: unknown): Promise<
 
     case "set_day_type": {
       const i = input as z.infer<typeof toolSchemas.set_day_type>;
-      const previous = await setDayType(userId, i.date, i.type);
+      const { previous, retimed, configured } = await setDayTypeAndRetime(userId, i.date, i.type);
       const label = i.type ? i.type[0].toUpperCase() + i.type.slice(1) : "cleared";
       return {
         ok: true,
         summary: `${formatDateShort(i.date)}: ${label}`,
+        detail: retimed ? `${retimed} routine tiles retimed (this evening and tomorrow morning)` : configured ? undefined : "No wake/bed times set in Settings",
         undo: { type: "set_day_type", date: i.date, dayType: previous },
-        data: { date: i.date, type: i.type },
+        data: { date: i.date, type: i.type, retimed_tasks: retimed, day_type_times_configured: configured },
       };
     }
 
@@ -414,7 +422,7 @@ export async function executeUndo(userId: number, undo: Undo): Promise<string> {
       return "Time restored";
     }
     case "set_day_type": {
-      await setDayType(userId, undo.date, undo.dayType);
+      await setDayTypeAndRetime(userId, undo.date, undo.dayType);
       return "Day type restored";
     }
     case "uncomplete": {

@@ -10,6 +10,12 @@ export const SEED_SETTINGS = {
   waterGoalOz: 100,
   waterGoalShiftOz: 120,
   timezone: "America/New_York",
+  dayTypeTimes: {
+    close: { wake: "10:00", bed: "02:00" },
+    open: { wake: "09:30", bed: "01:30" },
+    off: { wake: "08:30", bed: "00:30" },
+    prep: { wake: "07:30", bed: "23:30" },
+  },
 };
 
 export const SEED_LISTS = ["Daily", "Fitness", "Work"];
@@ -26,6 +32,7 @@ export type SeedTask = {
   logType?: LogType;
   logUnit?: string;
   notify?: boolean;
+  followsWake?: boolean;
 };
 
 export const SEED_TASKS: SeedTask[] = [
@@ -38,10 +45,10 @@ export const SEED_TASKS: SeedTask[] = [
   { list: "Daily", time: "13:30", title: "30 oz water", note: "Water checkpoint, 30 oz", repeatType: "daily", kind: "water", waterOz: 30 },
   { list: "Daily", time: "18:30", title: "30 oz water", note: "Water checkpoint, 30 oz", repeatType: "daily", kind: "water", waterOz: 30 },
   { list: "Daily", time: "23:30", title: "20 oz water", note: "Water checkpoint, 20 oz. Fiber glass counts.", repeatType: "daily", kind: "water", waterOz: 20 },
-  { list: "Daily", time: null, title: "One pouch at a time", note: "3mg only. Never two.", repeatType: "daily" },
+  { list: "Daily", time: null, title: "One pouch at a time", note: "3mg only. Never two.", repeatType: "daily", followsWake: false },
   { list: "Daily", time: "23:30", title: "Fiber, greens, beet", note: "Psyllium + full glass of water", repeatType: "daily" },
   { list: "Daily", time: "00:30", title: "Screens off, lights out", note: "No Overwatch, no scrolling", repeatType: "daily", logType: "actual_time", notify: true },
-  { list: "Daily", time: "22:30", title: "Weigh-in", note: "Same time every week", repeatType: "weekdays", repeatDays: [1], logType: "number", logUnit: "lbs", notify: true },
+  { list: "Daily", time: "22:30", title: "Weigh-in", note: "Same time every week", repeatType: "weekdays", repeatDays: [1], logType: "number", logUnit: "lbs", notify: true, followsWake: false },
 ];
 
 export const SEED_MY_PLAN = `# My Plan

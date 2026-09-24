@@ -41,6 +41,9 @@ export type Theme = {
   doneText: string;
 };
 
+/** Wake and bed times per day type, HH:MM. Routine tasks shift by the wake-time difference from "off". */
+export type DayTypeTimes = Partial<Record<"close" | "open" | "prep" | "off", { wake: string; bed: string }>>;
+
 export const settings = pgTable("settings", {
   userId: integer("user_id")
     .primaryKey()
@@ -52,6 +55,7 @@ export const settings = pgTable("settings", {
   waterGoalShiftOz: integer("water_goal_shift_oz").default(120).notNull(),
   myPlan: text("my_plan").default("").notNull(),
   timezone: text("timezone").default("America/New_York").notNull(),
+  dayTypeTimes: jsonb("day_type_times").$type<DayTypeTimes>(),
 });
 
 export const lists = pgTable(
@@ -90,6 +94,7 @@ export const tasks = pgTable(
     logType: logTypeEnum("log_type").default("none").notNull(),
     logUnit: text("log_unit"),
     notify: boolean("notify").default(false).notNull(),
+    followsWake: boolean("follows_wake").default(true).notNull(), // shifts with the day type's wake time
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [index("tasks_user_idx").on(t.userId), index("tasks_list_idx").on(t.listId)],

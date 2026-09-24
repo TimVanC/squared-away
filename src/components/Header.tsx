@@ -38,7 +38,7 @@ export default function Header({
     .join(" · ");
 
   return (
-    <header className="px-4 pt-3 pb-2" style={{ color: "var(--header-text)" }}>
+    <header className="px-5 pt-4 pb-3" style={{ color: "var(--header-text)" }}>
       <div className="flex items-center justify-between">
         <Wordmark />
         <Link href="/settings" aria-label="Settings" className="p-2 -mr-2 opacity-80 hover:opacity-100">
@@ -49,7 +49,7 @@ export default function Header({
         </Link>
       </div>
 
-      <div className="mt-3 flex items-center justify-between">
+      <div className="mt-5 flex items-center justify-between">
         <button type="button" aria-label="Previous day" className="nav-btn" onClick={() => onChangeDate(addDays(date, -1))}>
           ‹
         </button>
@@ -62,7 +62,7 @@ export default function Header({
         </button>
       </div>
 
-      <div className="mt-2 flex items-center justify-between text-sm">
+      <div className="mt-4 flex items-center justify-between text-sm">
         <div className="flex items-center gap-2">
           <span className="font-semibold">
             {doneCount} of {totalCount} done

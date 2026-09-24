@@ -95,6 +95,7 @@ export type DayTask = {
   logType: "none" | "actual_time" | "number";
   logUnit: string | null;
   notify: boolean;
+  followsWake: boolean;
   repeatType: "daily" | "weekdays" | "range" | "once";
   repeatDays: number[];
   startDate: string | null;
@@ -149,6 +150,7 @@ export async function getDayView(userId: number, date: string): Promise<DayView>
       logType: t.logType,
       logUnit: t.logUnit,
       notify: t.notify,
+      followsWake: t.followsWake,
       repeatType: t.repeatType,
       repeatDays: t.repeatDays,
       startDate: t.startDate,

@@ -30,7 +30,7 @@ export default function WaterMeter({ total, goal, onAdd }: Props) {
   const full = goal > 0 && total >= goal;
 
   return (
-    <div className="px-4 pt-1 pb-2">
+    <div className="px-5 pt-2 pb-3">
       <button
         type="button"
         className={`water ${wave ? "water-wave" : ""} ${full ? "water-full" : ""}`}

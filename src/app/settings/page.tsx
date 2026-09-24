@@ -20,6 +20,7 @@ export default async function SettingsPage() {
         waterGoalShiftOz: settings.waterGoalShiftOz,
         myPlan: settings.myPlan,
         timezone: settings.timezone,
+        dayTypeTimes: settings.dayTypeTimes ?? {},
       }}
       defaultTheme={DEFAULT_THEME}
       initialLists={lists}
