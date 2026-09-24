@@ -20,3 +20,23 @@ Decisions and assumptions made while building from the PRD. Anything here is a c
 ## Model
 
 - `ANTHROPIC_MODEL` defaults to `claude-sonnet-5`, the latest Sonnet, per PRD section 5.
+
+## Deployment
+
+- **Vercel project:** `squared-away-qay3` in team "Tim's projects" (the GitHub repo was already linked there through the Vercel import UI, so I reused it; a second empty project named `squared-away` also exists in the team and can be deleted). Production URL: https://squared-away-qay3.vercel.app
+- **Env vars** were pushed with the Vercel CLI (`vercel env add`) from `.env.local`; the MCP connection lacked env-var permission. `DATABASE_URL` and `DATABASE_URL_UNPOOLED` were already set by the Neon integration and point at the same Neon project.
+- **Scheduler:** Vercel Cron on the Hobby plan only allows once-a-day schedules, so `vercel.json` has no cron. Use cron-job.org (free) to call `GET https://<app>/api/cron/notify?secret=<CRON_SECRET>` every 5 minutes. The route also accepts `Authorization: Bearer <CRON_SECRET>`, so switching back to Vercel Cron on a Pro plan is a one-line `vercel.json` change.
+- **Notification timing:** the sweep sends a task's push when its effective time is between 0 and 20 minutes ago (covers a 5-minute scheduler with room for delays). Tasks timed before 04:00 count as that evening, so a 00:30 "lights out" fires after midnight, not the previous morning.
+
+## Anthropic API key
+
+- The key provided is not scoped to a workspace, and the API now rejects such keys unless the request carries `anthropic-workspace-id`. The app reads an optional `ANTHROPIC_WORKSPACE_ID` env var and sends it as that header. Either set that var (console.anthropic.com, Settings, Workspaces) or create a new key inside a workspace.
+
+## Chat storage
+
+- Chat history persists as rows per API turn: user text, assistant text plus tool calls plus undo descriptors, and tool results. Uploaded file bytes are not stored; a later turn sees "[Attached earlier: name]" and can ask for a re-attach.
+- Images are downscaled client-side (max 1800px JPEG) so uploads stay under Vercel's 4.5 MB request limit.
+
+## Test data
+
+- Two test accounts (`tester@example.com`, plus the AI test messages) were created in the Neon DB during development and are deleted at the end of the build.
