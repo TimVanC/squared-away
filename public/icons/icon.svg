@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Squared Away app icon: navy rounded square, big S, butter yellow tile floating top right with a tiny check. -->
+  <rect width="512" height="512" rx="112" fill="#1F2B4D"/>
+  <text x="222" y="384" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-weight="800" font-size="340" fill="#F3F5FA" letter-spacing="-8">S</text>
+  <!-- flat offset shadow -->
+  <rect x="330" y="98" width="128" height="128" rx="28" fill="#141C33"/>
+  <rect x="318" y="86" width="128" height="128" rx="28" fill="#FFD84D"/>
+  <path d="M352 152 l22 22 l40 -44" fill="none" stroke="#1F2B4D" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
