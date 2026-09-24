@@ -31,6 +31,10 @@ async function shrinkImage(file: File): Promise<File> {
   }
 }
 
+/**
+ * One rounded pill: camera (attach) on the left, growing text field, mic, and a round send
+ * button that lights up when there is something to send.
+ */
 export default function Composer({ disabled, onSend }: Props) {
   const [text, setText] = useState("");
   const [files, setFiles] = useState<Attachment[]>([]);
@@ -43,7 +47,7 @@ export default function Composer({ disabled, onSend }: Props) {
     const el = textarea.current;
     if (!el) return;
     el.style.height = "0px";
-    el.style.height = Math.min(160, el.scrollHeight) + "px";
+    el.style.height = Math.min(140, el.scrollHeight) + "px";
   }, [text, dictation.listening]);
 
   useEffect(() => () => files.forEach((f) => f.preview && URL.revokeObjectURL(f.preview)), [files]);
@@ -67,7 +71,7 @@ export default function Composer({ disabled, onSend }: Props) {
     setFiles([]);
   }
 
-  const hasText = text.trim().length > 0 || files.length > 0;
+  const canSend = (text.trim().length > 0 || files.length > 0) && !disabled;
 
   return (
     <div className="composer">
@@ -89,23 +93,25 @@ export default function Composer({ disabled, onSend }: Props) {
           ))}
         </div>
       )}
-      <div className="composer-row">
+
+      <div className="pill">
         <input ref={fileInput} type="file" accept={ACCEPT} multiple hidden onChange={(e) => addFiles(e.target.files)} />
-        <button type="button" className="composer-btn" aria-label="Attach" onClick={() => fileInput.current?.click()} disabled={disabled}>
-          +
+        <button type="button" className="pill-icon" aria-label="Attach a photo or file" onClick={() => fileInput.current?.click()} disabled={disabled}>
+          <CameraIcon />
         </button>
-        <div className="composer-field">
+
+        <div className="pill-field">
           {dictation.listening && (
-            <div className="composer-live" onClick={() => textarea.current?.focus()}>
+            <div className="pill-live" onClick={() => textarea.current?.focus()}>
               <span>{text}</span>
-              <span className="composer-interim">{dictation.interim || (text ? "" : "Listening...")}</span>
+              <span className="pill-interim">{dictation.interim || (text ? "" : "Listening...")}</span>
             </div>
           )}
           <textarea
             ref={textarea}
             className={dictation.listening ? "sr-only" : ""}
             rows={1}
-            placeholder="Message"
+            placeholder="Describe your day or plan"
             value={text}
             disabled={disabled}
             onChange={(e) => setText(e.target.value)}
@@ -117,33 +123,43 @@ export default function Composer({ disabled, onSend }: Props) {
             }}
           />
         </div>
-        {hasText ? (
-          <button type="button" className="composer-btn composer-send" aria-label="Send" onClick={send} disabled={disabled}>
-            ↑
-          </button>
-        ) : dictation.supported ? (
+
+        {dictation.supported && (
           <button
             type="button"
-            className={`composer-btn ${dictation.listening ? "composer-mic-on" : ""}`}
+            className={`pill-icon ${dictation.listening ? "pill-mic-on" : ""}`}
             aria-label={dictation.listening ? "Stop dictation" : "Dictate"}
             onClick={dictation.toggle}
             disabled={disabled}
           >
-            {dictation.listening ? "■" : "🎤"}
-          </button>
-        ) : null}
-        {hasText && dictation.supported && (
-          <button
-            type="button"
-            className={`composer-btn ${dictation.listening ? "composer-mic-on" : ""}`}
-            aria-label={dictation.listening ? "Stop dictation" : "Dictate"}
-            onClick={dictation.toggle}
-            disabled={disabled}
-          >
-            {dictation.listening ? "■" : "🎤"}
+            <MicIcon />
           </button>
         )}
+
+        <button type="button" className={`pill-send ${canSend ? "pill-send-on" : ""}`} aria-label="Send" onClick={send} disabled={!canSend}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 19V5M5 12l7-7 7 7" />
+          </svg>
+        </button>
       </div>
     </div>
+  );
+}
+
+function CameraIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 8.5A1.5 1.5 0 0 1 5.5 7H8l1.2-2h5.6L16 7h2.5A1.5 1.5 0 0 1 20 8.5V17a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17z" />
+      <circle cx="12" cy="12.5" r="3.2" />
+    </svg>
+  );
+}
+
+function MicIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="9" y="3" width="6" height="11" rx="3" />
+      <path d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6" />
+    </svg>
   );
 }

@@ -21,7 +21,7 @@ Working with tasks:
 - Call list_tasks before editing so you use real task ids and see effective times. Make many tool calls in one turn when a job needs them (parallel calls are fine).
 - To retime a repeating task on specific dates, use set_time_override per date. Only use update_task time when the default should change everywhere.
 - One-off things like a work shift are create_task with repeat once and a date. Put shifts in the Work list, lifts and runs in the Fitness list.
-- Planning from a schedule (screenshot, photo, or text): call set_day_type for each date (parallel calls). That alone retimes the routine: a day type's bed time moves that evening's tiles, and its wake time moves the NEXT morning's tiles (a Close on Friday means lights out at 2:00 Friday night and wake at 10:00 Saturday). Then call list_tasks for the range to confirm, and only use set_time_override for exceptions. Add each shift as a one-off task with its hours in the Work list. Place lifts on off days or before close shifts, never during a shift, and runs can share a day with a lift. Respect any rule in My Plan about avoiding prep shifts after closes.
+- Planning from a schedule (screenshot, photo, or text): read every date on it, including past dates and today, and call set_day_type for each one (parallel calls). Skip a date only if it already has a day type in the list below and the user did not ask to change it. Days the schedule shows as closed, off, or blank are "off". Past dates matter too: they fix that day's history and the following morning. That alone retimes the routine: a day type's bed time moves that evening's tiles, and its wake time moves the NEXT morning's tiles (a Close on Friday means lights out at 2:00 Friday night and wake at 10:00 Saturday). Then call list_tasks for the range to confirm, and only use set_time_override for exceptions. Add each shift as a one-off task with its hours in the Work list. Place lifts on off days or before close shifts, never during a shift, and runs can share a day with a lift. Respect any rule in My Plan about avoiding prep shifts after closes.
 - After making changes, summarize briefly by day. Do not restate every tool call.
 - When the user asks about trends (wake time, weight, water), use get_logs and give the numbers plainly.`;
 
@@ -36,12 +36,12 @@ export async function buildSystemPrompt(userId: number): Promise<PromptContext> 
   const tz = settings.timezone;
   const today = todayIn(tz);
   const now = nowTimeIn(tz);
-  const horizon = addDays(today, 14);
+  const horizon = addDays(today, 21);
 
   const [lists, visible, dayTypes, allTasks] = await Promise.all([
     getLists(userId),
     getVisibleTasksForRange(userId, today, today),
-    getDayTypesInRange(userId, addDays(today, -1), horizon),
+    getDayTypesInRange(userId, addDays(today, -7), horizon),
     db.select().from(tasks).where(eq(tasks.userId, userId)).orderBy(tasks.id),
   ]);
   const listName = new Map(lists.map((l) => [l.id, l.name]));
@@ -72,7 +72,7 @@ export async function buildSystemPrompt(userId: number): Promise<PromptContext> 
   const todayLines = todayTasks.map((t) => `- #${t.id} ${t.title} @${t.effectiveTime ?? "anytime"}${done.has(t.id) ? " DONE" : ""}`);
 
   const dayTypeLines: string[] = [];
-  for (let i = -1; i <= 14; i++) {
+  for (let i = -7; i <= 21; i++) {
     const d = addDays(today, i);
     dayTypeLines.push(`${d} ${formatDateShort(d).slice(0, 3)}: ${dayTypes[d] ?? "unset"}`);
   }
@@ -95,7 +95,7 @@ export async function buildSystemPrompt(userId: number): Promise<PromptContext> 
     "Today's tiles (effective times):",
     ...(todayLines.length ? todayLines : ["- none"]),
     "",
-    "Day types, yesterday through the next 14 days:",
+    "Day types, last 7 days through the next 21 days (unset = treated as off):",
     ...dayTypeLines,
   ].join("\n");
 

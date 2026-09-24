@@ -693,71 +693,92 @@ input[type="date"].field {
   opacity: 0.7;
   padding: 0 4px;
 }
-.composer-row {
+/* One pill: camera, text, mic, send. Light surface on the navy background. */
+.pill {
   display: flex;
   align-items: flex-end;
-  gap: 8px;
+  gap: 4px;
+  background: #ffffff;
+  color: #1f2b4d;
+  border: 2px solid #5b6ba8;
+  border-radius: 30px;
+  padding: 6px 6px 6px 8px;
+  min-height: 60px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
 }
-.composer-field {
-  flex: 1;
-  min-width: 0;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 22px;
-  padding: 10px 14px;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-}
-.composer-field textarea {
-  width: 100%;
-  background: transparent;
-  color: var(--header-text);
-  font-size: 16px;
-  line-height: 1.4;
-  resize: none;
-  outline: none;
-  max-height: 160px;
-}
-.composer-field textarea::placeholder {
-  color: var(--header-text);
-  opacity: 0.5;
-}
-.composer-live {
-  width: 100%;
-  font-size: 16px;
-  line-height: 1.4;
-  min-height: 22px;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-.composer-interim {
-  color: rgba(255, 255, 255, 0.55);
-  font-style: italic;
-}
-.composer-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+.pill-icon {
+  width: 46px;
+  height: 46px;
   flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
-  font-weight: 700;
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--header-text);
+  border-radius: 50%;
+  color: #2b3a5c;
 }
-.composer-btn:disabled {
-  opacity: 0.5;
+.pill-icon:active {
+  background: #eef0f6;
 }
-.composer-send {
+.pill-icon:disabled {
+  opacity: 0.4;
+}
+.pill-mic-on {
+  color: #fff;
+  background: #e5484d;
+  animation: pulse-ring 1.2s ease-in-out infinite;
+}
+.pill-field {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 4px;
+}
+.pill-field textarea {
+  width: 100%;
+  background: transparent;
+  color: #1f2b4d;
+  font-size: 17px;
+  line-height: 1.35;
+  resize: none;
+  outline: none;
+  max-height: 140px;
+  padding: 11px 0;
+}
+.pill-field textarea::placeholder {
+  color: #7a8399;
+}
+.pill-live {
+  width: 100%;
+  font-size: 17px;
+  line-height: 1.35;
+  padding: 11px 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.pill-interim {
+  color: #8b93a7;
+  font-style: italic;
+}
+.pill-send {
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #c9d0de;
+  color: #ffffff;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+.pill-send-on {
   background: var(--tile);
   color: var(--tile-text);
 }
-.composer-mic-on {
-  background: #e5484d;
-  color: #fff;
-  animation: pulse-ring 1.2s ease-in-out infinite;
+.pill-send-on:active {
+  transform: scale(0.94);
 }
 @keyframes pulse-ring {
   0%,
@@ -773,15 +794,15 @@ input[type="date"].field {
   position: fixed;
   right: max(16px, calc((100vw - 480px) / 2 + 16px));
   bottom: calc(20px + env(safe-area-inset-bottom));
-  width: 58px;
-  height: 58px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background: var(--tile);
   color: var(--tile-text);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
+  line-height: 0;
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.3),
     0 10px 24px rgba(0, 0, 0, 0.4);
