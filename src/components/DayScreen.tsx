@@ -9,6 +9,8 @@ import { sortDayTasks } from "@/lib/sort";
 import Header, { DAY_TYPE_LABEL } from "./Header";
 import TaskGrid from "./TaskGrid";
 import WaterMeter from "./WaterMeter";
+import QuickLogSheet from "./QuickLogSheet";
+import LogSheet from "./LogSheet";
 import ThemeVars from "./ThemeVars";
 
 type Props = { initialDate: string; timezone: string };
@@ -24,6 +26,8 @@ export default function DayScreen({ initialDate, timezone }: Props) {
   const [poppingId, setPoppingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dayTypePicker, setDayTypePicker] = useState(false);
+  const [quickLog, setQuickLog] = useState<DayTask | null>(null);
+  const [logTask, setLogTask] = useState<DayTask | null>(null);
   const reqSeq = useRef(0);
   const router = useRouter();
   const tz = view?.timezone ?? timezone;
@@ -108,8 +112,38 @@ export default function DayScreen({ initialDate, timezone }: Props) {
         body: JSON.stringify({ taskId: task.id, date, done: !wasDone }),
       });
       if (!res.ok) throw new Error("Could not save");
+      if (!wasDone && task.logType !== "none") setQuickLog(task);
     } catch {
       setError("Could not save that. Check your connection.");
+      load(date, { silent: true });
+    }
+  }
+
+  async function saveLog(task: DayTask, log: { actualTime?: string | null; value?: number | null; note?: string | null }) {
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === task.id && t.completion
+          ? {
+              ...t,
+              completion: {
+                ...t.completion,
+                actualTime: log.actualTime !== undefined ? log.actualTime : t.completion.actualTime,
+                value: log.value !== undefined ? log.value : t.completion.value,
+                note: log.note !== undefined ? log.note : t.completion.note,
+              },
+            }
+          : t,
+      ),
+    );
+    try {
+      const res = await fetch("/api/completions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taskId: task.id, date, ...log }),
+      });
+      if (!res.ok) throw new Error("Could not save");
+    } catch {
+      setError("Could not save the log. Check your connection.");
       load(date, { silent: true });
     }
   }
@@ -130,8 +164,11 @@ export default function DayScreen({ initialDate, timezone }: Props) {
   }
 
   function onSingleTap(task: DayTask) {
-    // Step 5/6 wire the edit sheet (open tiles) and the log sheet (done tiles).
-    void task;
+    if (task.completion) {
+      setLogTask(task);
+      return;
+    }
+    // Step 6 wires the edit sheet for open tiles.
   }
 
   async function chooseDayType(type: DayType | null) {
@@ -194,6 +231,37 @@ export default function DayScreen({ initialDate, timezone }: Props) {
             !error && <p className="px-4 py-10 text-center text-sm opacity-60">Loading...</p>
           )}
         </div>
+
+        {quickLog && (
+          <QuickLogSheet
+            task={quickLog}
+            timezone={tz}
+            onSkip={() => setQuickLog(null)}
+            onSubmit={(log) => {
+              const t = quickLog;
+              setQuickLog(null);
+              saveLog(t, log);
+            }}
+          />
+        )}
+
+        {logTask && (
+          <LogSheet
+            task={tasks.find((t) => t.id === logTask.id) ?? logTask}
+            date={date}
+            onClose={() => setLogTask(null)}
+            onUndo={() => {
+              const t = tasks.find((x) => x.id === logTask.id) ?? logTask;
+              setLogTask(null);
+              toggleComplete(t);
+            }}
+            onSave={async (log) => {
+              const t = logTask;
+              setLogTask(null);
+              await saveLog(t, log);
+            }}
+          />
+        )}
 
         {dayTypePicker && (
           <div className="sheet-backdrop" onClick={() => setDayTypePicker(false)}>
