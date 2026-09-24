@@ -3,7 +3,7 @@
 Based on PRD section 9. Checked off as each step is built, typechecked, linted, and tested against its PRD section.
 
 - [x] 1. Next.js app, Neon + Drizzle schema, seed script (PRD 5, 6, 7)
-- [ ] 2. Auth with sign up, log in, per-user data isolation (PRD 4.1)
+- [x] 2. Auth with sign up, log in, per-user data isolation (PRD 4.1)
 - [ ] 3. Grid with date nav, double tap complete, midnight reset (PRD 4.2, 4.3)
 - [ ] 4. Water meter and checkpoint tiles (PRD 4.4)
 - [ ] 5. Completion logs, quick-log sheet, CSV export (PRD 4.5)
